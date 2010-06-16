@@ -1,3 +1,4 @@
+#-----FUNCTIONS------------
 proc vim_call {command} {
     exec vim --servername VIM -u NONE -U NONE --remote-send ":call $command<CR>"
 }
@@ -39,4 +40,5 @@ proc prepare_position {position} {
 
     return "\"$filename\", $linenum"
 }
+#-----FUNCTIONS------------
 # vim: filetype=tcl ts=4 sw=4 expandtab
