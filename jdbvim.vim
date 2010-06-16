@@ -46,10 +46,6 @@ function! Jdb_interf_init(fifo_name, pwd)
 endfunction
 
 function Jdb_interf_close()
-    redir! > .jdbvim_breakpoints
-    silent call s:DumpBreakpoints()
-    redir END
-
     sign unplace *
 
     let s:bpSet = ""
@@ -86,3 +82,34 @@ function Jdb_currFileLine(file, line)
     :silent! foldopen!
 endf
 
+function Jdb_command(cmd, ...)
+  if match (a:cmd, '^\s*$') != -1
+    return
+  endif
+  let suff=""
+  if 0<a:0 && a:1!=0
+    let suff=" ".a:1
+  endif
+  silent exec ":redir >>". s:fifo_name ."|echon \"".a:cmd.suff."\n\"|redir END "
+endfun
+
+function Jdb_togglebreak(name, line)
+    if MvIndexOfElement(s:bpSet, "|", a:name.":".a:line) != -1
+        silent call Jdb_command("clear ".a:name.":".a:line)
+    else
+        silent call Jdb_command("stop at ".a:name.":".a:line)
+    endif
+    let s:bpFilename = a:name
+    let s:bpLineNumber = a:line
+endfun
+
+function s:Jdb_shortcuts()
+    nmap <unique> <F9>          :call Jdb_togglebreak(bufname("%"), line("."))<CR>
+    nmap <unique> <C-F5>        :Jdb run<CR>
+    nmap <unique> <F7>          :Jdb step<CR>
+    nmap <unique> <F8>          :Jdb next<CR>
+    nmap <unique> <F6>          :Jdb finish<CR>
+    nmap <unique> <F5>          :Jdb continue<CR>
+    vmap <unique> <C-P>         "gy:Jdb print <C-R>g<CR>
+    nmap <unique> <C-P>         :call Jdb_command("print ".expand("<cword>"))<CR> 
+endfunction

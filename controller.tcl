@@ -1,17 +1,6 @@
 #!/usr/bin/expect -f
 
-#---FUNCTIONS SECTION--------------
-proc vim_call {command} {
-    exec vim --servername VIM -u NONE -U NONE --remote-send ":call $command<CR>"
-}
-proc do_advance {} {
-    expect -re ".*, (\[A-Za-z\]+)\.\[A-Za-z\]*\\(\\), line=(\[0-9\]+)"
-    set class_name $expect_out(1,string)
-    set line_num $expect_out(2,string)
-    vim_call "Jdb_currFileLine(\"$class_name.java\", $line_num)"
-    expect "]"
-}
-#---END FUNCTIONS SECTION----------
+source functions.tcl
 
 #---MAIN SECTION-------------------
 
@@ -23,10 +12,9 @@ if {$argc < 1} {
 if {[file exists channel.fifo] == 0} {
     exec mkfifo --mode=600 channel.fifo
 }
-set log [open "log.txt" w]
 
-vim_call "Jdb_interf_init(\"channel.fifo\", \".\""
-
+vim_call "Jdb_interf_init(\"channel.fifo\", \".\")"
+set breaks_id 0
 set test_class [lindex $argv 0]
 
 spawn jdb $test_class
@@ -37,17 +25,35 @@ send "run\n"
 
 do_advance
 
-proc process_command {log command} {
+proc process_command {command} {
+    global breaks_id
+    global breaks
     set command_parts [split $command]
     set head_command [lindex $command_parts 0]
     append command "\n"
-    if {[expr [string compare $head_command "stop"] == 0]} {
+    if {[expr [string compare $head_command "quit"] == 0]} {
         send $command
-        expect
-    } elseif {[expr [string compare $head_command "quit"] == 0]} {
-        send $command
-        expect
+        vim_call "Jdb_interf_close()"
         exit
+    } elseif {[expr [string compare $head_command "clear"] == 0]} {
+        set break_position [prepare_stop_clear_position [lindex $command_parts 1]]
+        set break_id $breaks($break_position)
+        unset breaks($break_position)
+        send "clear $break_position\n"
+        expect "]"
+        vim_call "Jdb_noBpt($break_id)"
+    } elseif {[expr [string compare $head_command "stop"] == 0]} {
+        #we expect only the following format of stop command: stop at Test.java:6
+        incr breaks_id
+
+        set position [lindex $command_parts 2]
+        set break_position [prepare_stop_clear_position $position]
+        set position [prepare_position $position]
+
+        set breaks($break_position) $breaks_id
+        send "stop at $break_position\n"
+        expect "]"
+        vim_call "Jdb_bpt($breaks_id, $position)"
     } elseif {[expr [string compare $head_command "step"] == 0]} {
         send $command
         do_advance
@@ -61,16 +67,20 @@ proc process_command {log command} {
         exit
     } else {
         send $command
-        expect
+        expect "]"
     }
 }
+
+set breaks("dumb:dumb") "-1"
 
 while {1} {
     set f [open "channel.fifo"]
     set s [gets $f]
-    process_command $log $s
+    process_command $s
     close $f
 }
+
+vim_call("Gdb_interf_close()");
 
 vwait _dumb_var_
 # vim: filetype=tcl ts=4 sw=4 expandtab
