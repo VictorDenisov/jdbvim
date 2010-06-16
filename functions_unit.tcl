@@ -17,6 +17,11 @@ proc test_get_class_name {} {
     assert_equals "ClassName" $class_name
 }
 
+proc test_get_class_name_with_packages {} {
+    set class_name [get_class_name "org/sample/ClassName.java"]
+    assert_equals "org.sample.ClassName" $class_name
+}
+
 proc test_prepare_stop_clear_position {} {
     set command "stop at Test.java:4"
     set command_parts [split $command]
@@ -30,8 +35,16 @@ proc test_prepare_position {} {
 
     assert_equals "\"Test.java\", 4" $position
 }
+
+proc test_class_name_to_file {} {
+    set class_name "org.sample.Main"
+    set result [class_name_to_file $class_name]
+    assert_equals "org/sample/Main" $result
+}
 test_get_class_name
 test_prepare_stop_clear_position
 test_prepare_position
+test_class_name_to_file
+test_get_class_name_with_packages
 
 # vim: filetype=tcl ts=4 sw=4 expandtab

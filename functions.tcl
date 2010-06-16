@@ -3,9 +3,14 @@ proc vim_call {command} {
     exec vim --servername VIM -u NONE -U NONE --remote-send ":call $command<CR>"
 }
 
+proc class_name_to_file {class_name} {
+    set class_name_parts [split $class_name "."]
+    return [join $class_name_parts "/"]
+}
+
 proc do_advance {} {
     expect {
-        -re ".*, (\[A-Za-z\]+)\.\[A-Za-z<>\]*\\(\\), line=(\[0-9\]+)" {
+        -re ".*, (\[A-Za-z.\]+)\\.\[A-Za-z<>\]+\\(\\), line=(\[0-9\]+)" {
             set class_name $expect_out(1,string);
             set line_num $expect_out(2,string);
         }
@@ -15,12 +20,16 @@ proc do_advance {} {
         }
     }
     expect "]"
-    vim_call "Jdb_currFileLine(\"$class_name.java\", $line_num)"
+    set file_name [class_name_to_file $class_name]
+    vim_call "Jdb_currFileLine(\"$file_name.java\", $line_num)"
 }
 
 proc get_class_name {filename} {
     set filename_parts [split $filename "."]
-    return [lindex $filename_parts 0]
+    set preliminary_class_name [lindex $filename_parts 0]
+    set preliminary_class_name_parts [split $preliminary_class_name "/"]
+    set class_name [join $preliminary_class_name_parts "."]
+    return $class_name
 }
 
 proc prepare_stop_clear_position {position} {
