@@ -2,6 +2,7 @@ let s:bpSet = ""
 
 let s:bpFilename = ""
 let s:bpNumber = -1
+let g:loaded_jdbvim_mappings = 0
 
 function Jdb_interf_init(fifo_name, pwd)
   echo "Can not use jdbvim plugin - your vim must have +signs and +clientserver features"
@@ -37,7 +38,9 @@ function! Jdb_interf_init(fifo_name, pwd)
     let s:fifo_name = a:fifo_name
     execute "cd ". a:pwd
 
-    call s:Jdb_shortcuts()
+    if !g:loaded_jdbvim_mappings
+        call s:Jdb_shortcuts()
+    endif
     let g:loaded_jdbvim_mappings=1
 
     if !exists(":Jdb")
@@ -108,8 +111,8 @@ function s:Jdb_shortcuts()
     nmap <unique> <C-F5>        :Jdb run<CR>
     nmap <unique> <F7>          :Jdb step<CR>
     nmap <unique> <F8>          :Jdb next<CR>
-    nmap <unique> <F6>          :Jdb finish<CR>
-    nmap <unique> <F5>          :Jdb continue<CR>
+    nmap <unique> <F6>          :Jdb step up<CR>
+    nmap <unique> <F5>          :Jdb cont<CR>
     vmap <unique> <C-P>         "gy:Jdb print <C-R>g<CR>
     nmap <unique> <C-P>         :call Jdb_command("print ".expand("<cword>"))<CR> 
 endfunction

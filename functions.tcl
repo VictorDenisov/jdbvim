@@ -3,11 +3,18 @@ proc vim_call {command} {
 }
 
 proc do_advance {} {
-    expect -re ".*, (\[A-Za-z\]+)\.\[A-Za-z\]*\\(\\), line=(\[0-9\]+)"
-    set class_name $expect_out(1,string)
-    set line_num $expect_out(2,string)
-    vim_call "Jdb_currFileLine(\"$class_name.java\", $line_num)"
+    expect {
+        -re ".*, (\[A-Za-z\]+)\.\[A-Za-z<>\]*\\(\\), line=(\[0-9\]+)" {
+            set class_name $expect_out(1,string);
+            set line_num $expect_out(2,string);
+        }
+        "application exited" {
+            vim_call "Jdb_interf_close()";
+            exit;
+        }
+    }
     expect "]"
+    vim_call "Jdb_currFileLine(\"$class_name.java\", $line_num)"
 }
 
 proc get_class_name {filename} {
