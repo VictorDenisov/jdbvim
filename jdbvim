@@ -4,20 +4,22 @@ source functions.tcl
 
 #---MAIN SECTION-------------------
 
+source jdbvimconfig.tcl
+
 if {$argc < 1} {
     puts "We expect at least one argument"
     exit
 }
 
-if {[file exists channel.fifo] == 0} {
-    exec mkfifo --mode=600 channel.fifo
+if {[file exists $config_comm_file] == 0} {
+    exec mkfifo --mode=600 $config_comm_file
 }
 
-vim_call "Jdb_interf_init(\"channel.fifo\", \".\")"
+vim_call "Jdb_interf_init(\"$config_comm_file\", \".\")"
 set breaks_id 0
 set test_class [lindex $argv 0]
 
-spawn jdb $test_class
+spawn jdb -classpath $config_classpath $test_class
 expect ">"
 send "stop in $test_class.main\n"
 expect ">"
