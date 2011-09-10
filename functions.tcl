@@ -18,6 +18,11 @@ proc do_advance {} {
             vim_call "Jdb_interf_close()";
             exit;
         }
+        "Exception" {
+            expect "]"
+            vim_call "Jdb_interf_close()";
+            exit;
+        }
     }
     expect "]"
     set file_name [class_name_to_file $class_name]
