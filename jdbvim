@@ -76,7 +76,7 @@ proc process_command {command} {
 set breaks("dumb:dumb") "-1"
 
 while {1} {
-    set f [open "channel.fifo"]
+    set f [open $config_comm_file]
     set s [gets $f]
     process_command $s
     close $f
