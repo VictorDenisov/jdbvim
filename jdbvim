@@ -19,7 +19,11 @@ vim_call "Jdb_interf_init(\"$config_comm_file\", \".\")"
 set breaks_id 0
 set test_class [lindex $argv 0]
 
-spawn jdb -classpath $config_classpath $test_class
+if {$config_attach_port == 0} {
+    spawn jdb -classpath $config_classpath $test_class
+} else {
+    spawn jdb -attach $config_attach_port
+}
 expect ">"
 send "stop in $test_class.main\n"
 expect ">"
