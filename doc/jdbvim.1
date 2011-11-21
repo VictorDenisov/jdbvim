@@ -1,0 +1,50 @@
+'\" t
+.\" Title: Jdbvim
+.\" Author: Victor Denisov
+.\" Date: 09/13/2011
+.\" Manual: Jdbvim Manual
+
+.TH "JdbVim" "1" "09/12/2011" "JdbVim 0\&.1" "JdbVim Manual"
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+
+.SH "NAME"
+JdbVim \- debugging connector for jdb and vim
+.SH "SYNOPSYS"
+.sp
+.nf
+\fIjdbvim\fR [class name]
+.fi
+.sp
+.SH "DESCRIPTION"
+.sp
+Runs jdb-vim connector. This connector starts jdb, connects to
+running vim server instance and gives the control of jdb to vim.
+.sp
+.SH "FILES"
+.I jdbvimconfig.tcl
+.br
+Configuration file. This file contains options.
+.PP
+config_comm_file
+.RS 4
+name of fifo file for communication
+between vim and jdbvim tcl script.
+.RE
+.PP
+config_classpath
+.RS 4
+classpath of the project being executed.
+.RE
+.PP
+config_attach_port 
+.RS 4
+port for attachment, in case you want to do
+remote debugging.
+.RE
+
+.SH "AUTHOR"
+.sp
+Written by Victor Denisov <\m[blue]\fBdenisovenator@gmail\&.com\fR\m[]\&\s-2\u[1]\d\s+2>
